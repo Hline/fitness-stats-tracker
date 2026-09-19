@@ -14,7 +14,8 @@ import {
   Check, 
   Smartphone,
   Layers,
-  Palette
+  Palette,
+  Clock
 } from 'lucide-react';
 
 interface SnsShareModalProps {
@@ -180,6 +181,29 @@ export const SnsShareModal: React.FC<SnsShareModalProps> = ({
       setIsExporting(false);
     }
   };
+
+  // 애플 헬스 3대 활동 링 계산
+  const calGoal = stats.calorieGoal || 600;
+  const calPercent = Math.min(100, Math.round(((stats.activeCalories || 0) / calGoal) * 100));
+
+  const totalMinutes = stats.workouts.reduce((sum, w) => sum + (w.durationMinutes || 0), 0);
+  const exGoal = 30; // 30분 운동 목표 (애플 건강 표준)
+  const exPercent = Math.min(100, Math.round((totalMinutes / exGoal) * 100));
+
+  const stepGoal = stats.stepGoal || 10000;
+  const stepPercent = Math.min(100, Math.round(((stats.totalSteps || 0) / stepGoal) * 100));
+
+  const avgRingPercent = Math.round((calPercent + exPercent + stepPercent) / 3);
+
+  const getRingParams = (radius: number, percent: number) => {
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (Math.min(100, Math.max(0, percent)) / 100) * circumference;
+    return { circumference, strokeDashoffset };
+  };
+
+  const calRing = getRingParams(50, calPercent);
+  const exRing = getRingParams(38, exPercent);
+  const stepRing = getRingParams(26, stepPercent);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto">
@@ -389,59 +413,59 @@ export const SnsShareModal: React.FC<SnsShareModalProps> = ({
                 </div>
               </div>
 
-              {/* 2. 4대 핵심 지표 그리드 (사용자 요구 반영) */}
-              <div className="relative z-10 grid grid-cols-2 gap-3 my-auto py-2">
+              {/* 2. 4대 핵심 지표 그리드 (걸음 수, 소모 칼로리, 운동 시간, 최고 심박수) */}
+              <div className="relative z-10 grid grid-cols-2 gap-2.5 my-auto py-1.5">
                 
-                {/* 지표 1: 1일 운동 횟수 */}
-                <div className={`p-3.5 rounded-2xl ${themeStyle.highlightBox}`}>
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">
-                    <Dumbbell className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>운동 세션</span>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl sm:text-3xl font-black text-slate-100">
-                      {stats.workoutCount}
-                    </span>
-                    <span className="text-xs text-slate-400 font-semibold">회 완료</span>
-                  </div>
-                </div>
-
-                {/* 지표 2: 오늘 걸음 수 */}
-                <div className={`p-3.5 rounded-2xl ${themeStyle.highlightBox}`}>
+                {/* 지표 1: 오늘 걸음 수 */}
+                <div className={`p-3 rounded-2xl ${themeStyle.highlightBox}`}>
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">
                     <Footprints className="w-3.5 h-3.5 text-cyan-400" />
                     <span>오늘 걸음 수</span>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl sm:text-3xl font-black text-cyan-400">
+                    <span className="text-xl sm:text-2xl font-black text-cyan-400">
                       {stats.totalSteps.toLocaleString()}
                     </span>
                     <span className="text-xs text-slate-400 font-semibold">보</span>
                   </div>
                 </div>
 
-                {/* 지표 3: 소모 칼로리 */}
-                <div className={`p-3.5 rounded-2xl ${themeStyle.highlightBox}`}>
+                {/* 지표 2: 소모 칼로리 */}
+                <div className={`p-3 rounded-2xl ${themeStyle.highlightBox}`}>
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">
                     <Flame className="w-3.5 h-3.5 text-orange-400" />
                     <span>소모 칼로리</span>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl sm:text-3xl font-black text-orange-400">
-                      {stats.activeCalories > 0 ? stats.activeCalories.toLocaleString() : (stats.workoutCount === 0 && stats.totalSteps === 0 ? 'N/A' : '0')}
+                    <span className="text-xl sm:text-2xl font-black text-orange-400">
+                      {stats.activeCalories > 0 ? stats.activeCalories.toLocaleString() : (stats.totalSteps === 0 ? 'N/A' : '0')}
                     </span>
                     <span className="text-xs text-slate-400 font-semibold">kcal</span>
                   </div>
                 </div>
 
-                {/* 지표 4: 운동시간 동안 최고 심박수 (⭐ 필수) */}
-                <div className={`p-3.5 rounded-2xl ${themeStyle.highlightBox}`}>
+                {/* 지표 3: 운동 시간 */}
+                <div className={`p-3 rounded-2xl ${themeStyle.highlightBox}`}>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">
+                    <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>운동 시간</span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl sm:text-2xl font-black text-emerald-400">
+                      {totalMinutes}
+                    </span>
+                    <span className="text-xs text-slate-400 font-semibold">분</span>
+                  </div>
+                </div>
+
+                {/* 지표 4: 운동시간 동안 최고 심박수 */}
+                <div className={`p-3 rounded-2xl ${themeStyle.highlightBox}`}>
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">
                     <Heart className="w-3.5 h-3.5 text-rose-500" />
                     <span>최고 심박수</span>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl sm:text-3xl font-black text-rose-400">
+                    <span className="text-xl sm:text-2xl font-black text-rose-400">
                       {stats.peakHeartRate > 0 ? stats.peakHeartRate : 'N/A'}
                     </span>
                     {stats.peakHeartRate > 0 && (
@@ -452,21 +476,101 @@ export const SnsShareModal: React.FC<SnsShareModalProps> = ({
 
               </div>
 
-              {/* 3. 오늘 완료한 세션 칩 & 코멘트 */}
-              <div className="relative z-10 space-y-3 mt-auto pt-3">
-                {stats.workouts.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {stats.workouts.slice(0, 3).map((w) => (
-                      <span
-                        key={w.id}
-                        className="text-[10px] font-bold px-2 py-0.8 rounded-lg bg-slate-800/90 text-slate-300 border border-slate-700/60"
-                      >
-                        ⚡ {w.name} ({w.durationMinutes}m / {w.caloriesBurned}kcal)
-                      </span>
-                    ))}
-                  </div>
-                )}
+              {/* 3. 애플 헬스 3단 활동 링 (Activity Rings - 사용자 요청 반영) */}
+              <div className={`relative z-10 p-3.5 sm:p-4 rounded-2xl ${themeStyle.highlightBox} my-1.5 flex items-center justify-around gap-4`}>
+                {/* 3단 동심원 SVG 링 */}
+                <div className="relative w-[120px] h-[120px] flex-shrink-0 flex items-center justify-center">
+                  <svg width="120" height="120" className="transform -rotate-90">
+                    {/* 1. 움직임/칼로리 링 (빨강) */}
+                    <circle cx="60" cy="60" r="48" stroke="#380512" strokeWidth="9" fill="none" />
+                    <circle
+                      cx="60" cy="60" r="48"
+                      stroke="#ff2453" strokeWidth="9"
+                      strokeDasharray={calRing.circumference}
+                      strokeDashoffset={calRing.strokeDashoffset}
+                      strokeLinecap="round" fill="none"
+                    />
 
+                    {/* 2. 운동시간 링 (초록) */}
+                    <circle cx="60" cy="60" r="36" stroke="#08331d" strokeWidth="9" fill="none" />
+                    <circle
+                      cx="60" cy="60" r="36"
+                      stroke="#30e36b" strokeWidth="9"
+                      strokeDasharray={exRing.circumference}
+                      strokeDashoffset={exRing.strokeDashoffset}
+                      strokeLinecap="round" fill="none"
+                    />
+
+                    {/* 3. 일일 걸음수 링 (시안) */}
+                    <circle cx="60" cy="60" r="24" stroke="#082f49" strokeWidth="9" fill="none" />
+                    <circle
+                      cx="60" cy="60" r="24"
+                      stroke="#00e5ff" strokeWidth="9"
+                      strokeDasharray={stepRing.circumference}
+                      strokeDashoffset={stepRing.strokeDashoffset}
+                      strokeLinecap="round" fill="none"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                    <span className="text-[9px] font-black tracking-widest text-slate-400">RINGS</span>
+                    <span className="text-sm font-extrabold text-slate-100">{avgRingPercent}%</span>
+                  </div>
+                </div>
+
+                {/* 링 세부 목표 달성치 게이지 */}
+                <div className="flex-1 space-y-2 min-w-0">
+                  {/* 움직임 (칼로리) */}
+                  <div className="space-y-0.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="flex items-center gap-1 font-bold text-rose-400">
+                        <Flame className="w-3 h-3" />
+                        <span>움직임</span>
+                      </span>
+                      <span className="font-mono text-slate-300 font-semibold text-[10px]">
+                        {stats.activeCalories} / {calGoal} kcal
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-950/70 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-rose-500 h-full rounded-full transition-all" style={{ width: `${Math.min(100, calPercent)}%` }} />
+                    </div>
+                  </div>
+
+                  {/* 운동하기 (시간) */}
+                  <div className="space-y-0.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="flex items-center gap-1 font-bold text-emerald-400">
+                        <Clock className="w-3 h-3" />
+                        <span>운동하기</span>
+                      </span>
+                      <span className="font-mono text-slate-300 font-semibold text-[10px]">
+                        {totalMinutes} / {exGoal} 분
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-950/70 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-emerald-400 h-full rounded-full transition-all" style={{ width: `${Math.min(100, exPercent)}%` }} />
+                    </div>
+                  </div>
+
+                  {/* 일일 걸음 */}
+                  <div className="space-y-0.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="flex items-center gap-1 font-bold text-cyan-400">
+                        <Footprints className="w-3 h-3" />
+                        <span>일일 걸음</span>
+                      </span>
+                      <span className="font-mono text-slate-300 font-semibold text-[10px]">
+                        {stats.totalSteps.toLocaleString()} / {stepGoal.toLocaleString()} 보
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-950/70 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-cyan-400 h-full rounded-full transition-all" style={{ width: `${Math.min(100, stepPercent)}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. 커스텀 코멘트 & 푸터 */}
+              <div className="relative z-10 space-y-2 mt-auto pt-2">
                 {customComment && (
                   <div className="text-xs font-medium text-slate-300 bg-slate-900/60 border border-slate-800/80 px-3 py-2 rounded-xl italic">
                     "{customComment}"
@@ -476,7 +580,7 @@ export const SnsShareModal: React.FC<SnsShareModalProps> = ({
                 {/* 푸터 워터마크 */}
                 <div className="flex items-center justify-between text-[9px] text-slate-500 pt-2 border-t border-slate-800/60">
                   <span>Tracked with FitStats Studio</span>
-                  <span>#AppleHealth #GoogleFit #Workout</span>
+                  <span>#AppleHealth #ActivityRings #오운완</span>
                 </div>
               </div>
 
