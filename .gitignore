@@ -30,3 +30,7 @@ dist-ssr
 
 # Gemini Task History Documentation
 gemini/
+
+# Corrupted file entry
+.github/workflows/ios-build.yml
+
