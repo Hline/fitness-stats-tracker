@@ -1,6 +1,9 @@
 # FitStats - 스마트 피트니스 운동 통계 & SNS 공유 스튜디오
 
-아이폰 건강(Apple Health) 및 구글 핏(Google Fit) 연동을 지원하며, 1일 4대 핵심 지표(운동 횟수, 걸음 수, 소모 칼로리, 최고 심박수)와 월간 운동 통계, 그리고 인스타그램 스토리/피드 전용 고화질 SNS 캡처 카드를 생성하는 모던 웹 애플리케이션입니다.
+> 🌐 **공식 라이브 웹 데모**: [https://hline.github.io/fitness-stats-tracker/](https://hline.github.io/fitness-stats-tracker/)  
+> 📱 **아이폰 네이티브 앱 (.ipa)**: [GitHub Actions 빌드 아티팩트 다운로드](https://github.com/Hline/fitness-stats-tracker/actions)
+
+아이폰 건강(Apple Health) 및 구글 핏(Google Fit) 연동을 지원하며, 1일 4대 핵심 지표(운동 횟수, 걸음 수, 소모 칼로리, 최고 심박수)와 월간 운동 통계, 그리고 인스타그램 스토리/피드 전용 고화질 SNS 캡처 카드를 생성하는 모던 웹 & iOS 하이브리드 애플리케이션입니다.
 
 ---
 
