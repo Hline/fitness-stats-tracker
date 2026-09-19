@@ -9,7 +9,9 @@ import {
   TrendingUp, 
   CheckCircle2, 
   AlertCircle,
-  Zap
+  Zap,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface DailyOverviewProps {
@@ -17,7 +19,30 @@ interface DailyOverviewProps {
   onOpenWorkoutModal: () => void;
 }
 
+const FOLD_STORAGE_KEY = 'fitstats_core_metrics_folded_v1';
+
 export const DailyOverview: React.FC<DailyOverviewProps> = ({ stats, onOpenWorkoutModal }) => {
+  // 1일 4대 핵심 지표 폴딩(접기/펼치기) 상태 관리
+  const [isFolded, setIsFolded] = React.useState<boolean>(() => {
+    try {
+      return localStorage.getItem(FOLD_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleFold = () => {
+    setIsFolded(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem(FOLD_STORAGE_KEY, String(next));
+      } catch (e) {
+        console.warn('폴딩 상태 로컬 저장 실패:', e);
+      }
+      return next;
+    });
+  };
+
   // 걸음 수 달성률
   const stepPercent = Math.min(100, Math.round((stats.totalSteps / stats.stepGoal) * 100));
   // 칼로리 달성률
@@ -27,8 +52,8 @@ export const DailyOverview: React.FC<DailyOverviewProps> = ({ stats, onOpenWorko
   const hrZone = getHeartRateZone(stats.peakHeartRate);
 
   return (
-    <div className="space-y-6">
-      {/* 상단 안내 & 오늘의 성취 배너 */}
+    <div className="space-y-5">
+      {/* 1. 상단 안내 & 오늘의 성취 배너 (DAILY PERFORMANCE SUMMARY 메인 타이틀) */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/60 p-5 shadow-xl">
         <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
@@ -64,8 +89,89 @@ export const DailyOverview: React.FC<DailyOverviewProps> = ({ stats, onOpenWorko
         </div>
       </div>
 
-      {/* 4대 핵심 지표 카드 그리드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 2. 분리된 "1일 4대 핵심 지표" 섹션 (폴딩 기능 탑재) */}
+      <div className="space-y-3">
+        {/* 서브헤더 및 폴딩(접기/펼치기) 컨트롤 바 */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-4 bg-emerald-400 rounded-full" />
+            <h3 className="text-sm sm:text-base font-bold text-slate-200 flex items-center gap-2">
+              1일 4대 핵심 지표
+              <span className="text-xs font-normal text-slate-400 hidden sm:inline">
+                (운동 · 걸음 · 칼로리 · 최고 심박수)
+              </span>
+            </h3>
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700/60">
+              {isFolded ? '접힘' : '펼침'}
+            </span>
+          </div>
+
+          <button
+            onClick={toggleFold}
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-emerald-400 border border-slate-700/80 hover:border-emerald-500/30 transition-all cursor-pointer shadow-sm active:scale-95"
+            aria-expanded={!isFolded}
+            aria-label={isFolded ? '1일 4대 핵심 지표 펼치기' : '1일 4대 핵심 지표 접기'}
+          >
+            {isFolded ? (
+              <>
+                <span>지표 펼치기</span>
+                <ChevronDown className="w-4 h-4 text-emerald-400 transition-transform duration-200" />
+              </>
+            ) : (
+              <>
+                <span>지표 접기</span>
+                <ChevronUp className="w-4 h-4 text-slate-400 transition-transform duration-200" />
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* 폴딩 접힘 상태일 때 표시되는 1줄 요약 바 (클릭 시 펼치기 가능) */}
+        {isFolded && (
+          <div
+            onClick={toggleFold}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFold(); }}
+            className="group cursor-pointer rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800/80 hover:border-emerald-500/40 p-3.5 transition-all shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+          >
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-slate-300">
+              <span className="flex items-center gap-1.5">
+                <Dumbbell className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-slate-400">운동</span>
+                <strong className="text-slate-100 font-bold">{stats.workoutCount}회</strong>
+              </span>
+              <span className="text-slate-700 hidden sm:inline">|</span>
+              <span className="flex items-center gap-1.5">
+                <Footprints className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-slate-400">걸음</span>
+                <strong className="text-slate-100 font-bold">{stats.totalSteps.toLocaleString()}보</strong>
+                <span className="text-[10px] text-cyan-400/90 font-medium">({stepPercent}%)</span>
+              </span>
+              <span className="text-slate-700 hidden sm:inline">|</span>
+              <span className="flex items-center gap-1.5">
+                <Flame className="w-3.5 h-3.5 text-orange-400" />
+                <span className="text-slate-400">활동</span>
+                <strong className="text-slate-100 font-bold">{stats.activeCalories.toLocaleString()} kcal</strong>
+              </span>
+              <span className="text-slate-700 hidden sm:inline">|</span>
+              <span className="flex items-center gap-1.5">
+                <Heart className="w-3.5 h-3.5 text-rose-400" />
+                <span className="text-slate-400">최고 심박</span>
+                <strong className="text-slate-100 font-bold">{stats.peakHeartRate > 0 ? `${stats.peakHeartRate} BPM` : 'N/A'}</strong>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1 text-[11px] font-medium text-slate-400 group-hover:text-emerald-400 transition-colors self-end sm:self-auto">
+              <span>카드 펼치기</span>
+              <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
+            </div>
+          </div>
+        )}
+
+        {/* 펼침 상태일 때: 4대 핵심 지표 카드 그리드 */}
+        {!isFolded && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* 1. 1일 운동 횟수 카드 */}
         <div className="relative overflow-hidden rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-lg transition-all hover:border-emerald-500/40 hover:shadow-emerald-500/10 group">
@@ -196,8 +302,10 @@ export const DailyOverview: React.FC<DailyOverviewProps> = ({ stats, onOpenWorko
             </p>
           </div>
         </div>
-
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
