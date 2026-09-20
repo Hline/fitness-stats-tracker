@@ -29,7 +29,10 @@ import { UserProfileModal } from './components/UserProfileModal';
 import { InquiryModal } from './components/InquiryModal';
 import { AuthModal } from './components/AuthModal';
 import { RouteOverlayMapModal } from './components/RouteOverlayMapModal';
+import { RouteOverlayView } from './components/RouteOverlayView';
 import { SyncScopeModal } from './components/SyncScopeModal';
+import { WorkoutRoute } from './types/route';
+import { generateDemoRoutes } from './services/demoRoutes';
 
 import { ActivityRingsWidget } from './components/widgets/ActivityRingsWidget';
 import { CardioZoneWidget } from './components/widgets/CardioZoneWidget';
@@ -138,6 +141,30 @@ export const App: React.FC = () => {
       console.warn('데이터 저장 실패:', e);
     }
   }, [dailyDataMap, currentProfileId]);
+
+  // 5-1. GPS 운동 경로 상태 (일간 오버레이 및 월간/연간 누적 겹쳐보기)
+  const getRoutesStorageKey = (profileId: string) => `fitstats_routes_${profileId}`;
+  const [routes, setRoutes] = useState<WorkoutRoute[]>(() => {
+    try {
+      const saved = localStorage.getItem(getRoutesStorageKey(currentProfileId));
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('경로 데이터 파싱 오류:', e);
+    }
+    return generateDemoRoutes();
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(getRoutesStorageKey(currentProfileId), JSON.stringify(routes));
+    } catch (e) {
+      console.warn('경로 저장 실패:', e);
+    }
+  }, [routes, currentProfileId]);
+
+  const handleAddRoute = (newRoute: WorkoutRoute) => {
+    setRoutes(prev => [newRoute, ...prev]);
+  };
 
   // 6. 모달 상태
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -491,6 +518,16 @@ export const App: React.FC = () => {
             recoveryScore={currentDailyStats.recoveryScore || 88}
           />
         );
+      case 'route-map':
+        return (
+          <RouteOverlayView
+            key="route-map"
+            mode="daily"
+            currentDateStr={currentDateStr}
+            routes={routes}
+            onAddRoute={handleAddRoute}
+          />
+        );
       default:
         return null;
     }
@@ -584,6 +621,8 @@ export const App: React.FC = () => {
                 setViewMode('daily');
               }}
               onOpenWorkoutModal={() => setIsWorkoutModalOpen(true)}
+              routes={routes}
+              onAddRoute={handleAddRoute}
             />
           </div>
         )}

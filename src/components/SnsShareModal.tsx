@@ -438,7 +438,7 @@ export const SnsShareModal: React.FC<SnsShareModalProps> = ({
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-xl sm:text-2xl font-black text-orange-400">
-                      {stats.activeCalories > 0 ? stats.activeCalories.toLocaleString() : (stats.totalSteps === 0 ? 'N/A' : '0')}
+                      {stats.activeCalories.toLocaleString()}
                     </span>
                     <span className="text-xs text-slate-400 font-semibold">kcal</span>
                   </div>
@@ -466,11 +466,11 @@ export const SnsShareModal: React.FC<SnsShareModalProps> = ({
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-xl sm:text-2xl font-black text-rose-400">
-                      {stats.peakHeartRate > 0 ? stats.peakHeartRate : 'N/A'}
+                      {stats.peakHeartRate > 0 ? stats.peakHeartRate : 0}
                     </span>
-                    {stats.peakHeartRate > 0 && (
-                      <span className="text-xs text-slate-400 font-semibold">BPM</span>
-                    )}
+                    <span className="text-xs text-slate-400 font-semibold">
+                      BPM {stats.peakHeartRate <= 0 && '(미측정)'}
+                    </span>
                   </div>
                 </div>
 

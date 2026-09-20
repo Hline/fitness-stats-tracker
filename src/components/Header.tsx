@@ -30,7 +30,7 @@ interface HeaderProps {
   onOpenWidgetSettings: () => void;
   onOpenProfileModal: () => void;
   onOpenInquiryModal: () => void;
-  onOpenRouteModal: () => void;
+  onOpenRouteModal?: () => void;
   onOpenAuthModal: () => void;
   onLoadDemoData: () => void;
   onCloudSync?: () => void;
@@ -182,16 +182,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* 우측 액션 버튼 그룹 */}
         <div className="flex items-center flex-wrap justify-end gap-1.5 w-full md:w-auto">
-          
-          {/* 운동 경로 겹쳐보기 (오버레이 히트맵) 버튼 (⭐ 핵심 신규 요구) */}
-          <button
-            onClick={onOpenRouteModal}
-            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold rounded-xl border border-amber-500/30 flex items-center gap-1.5 transition-all shadow-sm group"
-            title="기간별 운동 경로 누적 겹쳐보기 (히트맵)"
-          >
-            <Map className="w-3.5 h-3.5 group-hover:scale-110 transition-transform text-amber-400" />
-            <span>경로 겹쳐보기 🗺️</span>
-          </button>
 
           {/* 즉시사용 + 회원가입/계정 버튼 (⭐ 핵심 신규 요구) */}
           <button

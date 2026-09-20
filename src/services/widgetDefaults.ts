@@ -56,6 +56,14 @@ export const DEFAULT_WIDGET_CONFIGS: DashboardWidgetConfig[] = [
     category: 'lifestyle',
     enabled: true,
     order: 6
+  },
+  {
+    id: 'route-map',
+    title: '운동 경로 보기 (데일리 오버레이)',
+    description: '당일 야외 운동(러닝, 사이클 등)의 GPS 경로 겹쳐보기',
+    category: 'core',
+    enabled: true,
+    order: 7
   }
 ];
 

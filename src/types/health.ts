@@ -83,7 +83,8 @@ export type WidgetId =
   | 'cardio-zones'       // Zone 1~5 심박존 체류 시간 분석
   | 'workout-timeline'   // 오늘의 운동 세션 타임라인
   | 'hydration'          // 수분 섭취 트래커
-  | 'recovery-sleep';    // 수면 및 컨디션 회복 배터리
+  | 'recovery-sleep'     // 수면 및 컨디션 회복 배터리
+  | 'route-map';         // 운동 경로 보기 (데일리 오버레이)
 
 export interface DashboardWidgetConfig {
   id: WidgetId;

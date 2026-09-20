@@ -151,6 +151,102 @@ export function calculateMonthlyStats(
   };
 }
 
+export interface YearlyStats {
+  year: number;
+  totalWorkouts: number;
+  workoutDaysCount: number;
+  totalSteps: number;
+  totalCalories: number;
+  avgDailySteps: number;
+  peakHeartRate: number;
+  workoutTypeBreakdown: { [type in WorkoutType]?: { count: number; minutes: number; calories: number } };
+  monthlySummaries: {
+    month: number;
+    monthStr: string;
+    workouts: number;
+    steps: number;
+    calories: number;
+  }[];
+}
+
+/**
+ * 연간 종합 운동 통계 계산 (12개월 전체 집계)
+ */
+export function calculateYearlyStats(
+  year: number,
+  dailyDataMap: { [dateStr: string]: DailyStats }
+): YearlyStats {
+  const yearPrefix = String(year);
+  const yearEntries = Object.entries(dailyDataMap).filter(([date]) => date.startsWith(yearPrefix));
+
+  let totalSteps = 0;
+  let totalCalories = 0;
+  let totalWorkouts = 0;
+  let workoutDaysCount = 0;
+  let peakHeartRate = 0;
+
+  const workoutTypeBreakdown: { [type in WorkoutType]?: { count: number; minutes: number; calories: number } } = {};
+
+  const monthlyBuckets: { [m: number]: { workouts: number; steps: number; calories: number } } = {};
+  for (let m = 1; m <= 12; m++) {
+    monthlyBuckets[m] = { workouts: 0, steps: 0, calories: 0 };
+  }
+
+  yearEntries.forEach(([dateStr, stats]) => {
+    totalSteps += stats.totalSteps;
+    totalCalories += stats.activeCalories;
+
+    if (stats.workoutCount > 0) {
+      totalWorkouts += stats.workoutCount;
+      workoutDaysCount += 1;
+    }
+
+    if (stats.peakHeartRate > peakHeartRate) {
+      peakHeartRate = stats.peakHeartRate;
+    }
+
+    const m = parseInt(dateStr.split('-')[1], 10);
+    if (monthlyBuckets[m]) {
+      monthlyBuckets[m].workouts += stats.workoutCount;
+      monthlyBuckets[m].steps += stats.totalSteps;
+      monthlyBuckets[m].calories += stats.activeCalories;
+    }
+
+    stats.workouts.forEach(w => {
+      if (!workoutTypeBreakdown[w.type]) {
+        workoutTypeBreakdown[w.type] = { count: 0, minutes: 0, calories: 0 };
+      }
+      const entry = workoutTypeBreakdown[w.type]!;
+      entry.count += 1;
+      entry.minutes += w.durationMinutes || 0;
+      entry.calories += w.caloriesBurned || 0;
+    });
+  });
+
+  const totalDays = yearEntries.length || 365;
+  const avgDailySteps = Math.round(totalSteps / totalDays);
+
+  const monthlySummaries = Object.entries(monthlyBuckets).map(([mStr, data]) => ({
+    month: Number(mStr),
+    monthStr: `${year}-${mStr.padStart(2, '0')}`,
+    workouts: data.workouts,
+    steps: data.steps,
+    calories: data.calories
+  }));
+
+  return {
+    year,
+    totalWorkouts,
+    workoutDaysCount,
+    totalSteps,
+    totalCalories,
+    avgDailySteps,
+    peakHeartRate,
+    workoutTypeBreakdown,
+    monthlySummaries
+  };
+}
+
 /**
  * 심박수 존(Zone) 분석 헬퍼 (최대 심박수 220-나이 공식 기반, 기본 나이 30세기준 190)
  */

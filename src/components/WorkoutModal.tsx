@@ -20,14 +20,14 @@ export const WorkoutModal: React.FC<WorkoutModalProps> = ({
   const [startTime, setStartTime] = useState('08:00');
   const [durationMinutes, setDurationMinutes] = useState(45);
   const [caloriesBurned, setCaloriesBurned] = useState(420);
-  const [maxHeartRate, setMaxHeartRate] = useState(172); // 운동 중 최고 심박수
-  const [avgHeartRate, setAvgHeartRate] = useState(148);
+  const [maxHeartRate, setMaxHeartRate] = useState<number | ''>(''); // 운동 중 최고 심박수 (워치 없을 시 빈값 허용)
+  const [avgHeartRate, setAvgHeartRate] = useState<number | ''>('');
   const [distanceKm, setDistanceKm] = useState<string>('5.2');
   const [notes, setNotes] = useState('상쾌한 아침 유산소 세션 🔥');
 
   if (!isOpen) return null;
 
-  // 종목 변경 시 기본 프리셋 자동 입력
+  // 종목 변경 시 기본 프리셋 자동 입력 (심박수는 워치 없는 사용자를 위해 강제하지 않음)
   const handleTypeChange = (selectedType: WorkoutType) => {
     setType(selectedType);
     switch (selectedType) {
@@ -35,48 +35,36 @@ export const WorkoutModal: React.FC<WorkoutModalProps> = ({
         setName('야외 러닝');
         setDurationMinutes(45);
         setCaloriesBurned(420);
-        setMaxHeartRate(174);
-        setAvgHeartRate(152);
         setDistanceKm('5.5');
         break;
       case 'strength':
         setName('웨이트 트레이닝');
         setDurationMinutes(60);
         setCaloriesBurned(350);
-        setMaxHeartRate(158);
-        setAvgHeartRate(126);
         setDistanceKm('');
         break;
       case 'cycling':
         setName('로드 사이클링');
         setDurationMinutes(60);
         setCaloriesBurned(450);
-        setMaxHeartRate(165);
-        setAvgHeartRate(140);
         setDistanceKm('20.0');
         break;
       case 'hiit':
         setName('타바타 고강도 인터벌');
         setDurationMinutes(30);
         setCaloriesBurned(320);
-        setMaxHeartRate(182);
-        setAvgHeartRate(162);
         setDistanceKm('');
         break;
       case 'swimming':
         setName('실내 자유형 수영');
         setDurationMinutes(40);
         setCaloriesBurned(380);
-        setMaxHeartRate(156);
-        setAvgHeartRate(138);
         setDistanceKm('1.2');
         break;
       case 'yoga':
         setName('빈야사 요가');
         setDurationMinutes(50);
         setCaloriesBurned(170);
-        setMaxHeartRate(115);
-        setAvgHeartRate(95);
         setDistanceKm('');
         break;
       default:
@@ -104,7 +92,7 @@ export const WorkoutModal: React.FC<WorkoutModalProps> = ({
       endTime: endIso,
       durationMinutes: Number(durationMinutes),
       caloriesBurned: Number(caloriesBurned),
-      maxHeartRate: Number(maxHeartRate),
+      maxHeartRate: maxHeartRate ? Number(maxHeartRate) : 0,
       avgHeartRate: avgHeartRate ? Number(avgHeartRate) : undefined,
       distanceKm: distanceKm ? parseFloat(distanceKm) : undefined,
       notes: notes || undefined
@@ -238,18 +226,21 @@ export const WorkoutModal: React.FC<WorkoutModalProps> = ({
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1 flex items-center gap-1">
-                <Heart className="w-3.5 h-3.5 text-rose-500" />
-                최고 심박수 (Max BPM)
+              <label className="text-xs font-bold text-slate-300 block mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <Heart className="w-3.5 h-3.5 text-rose-500" />
+                  최고 심박수 (BPM)
+                </span>
+                <span className="text-[10px] text-slate-500 font-normal">선택 (워치 착용 시)</span>
               </label>
               <input
                 type="number"
                 min="40"
                 max="240"
                 value={maxHeartRate}
-                onChange={(e) => setMaxHeartRate(Number(e.target.value))}
-                className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-xs text-rose-400 font-bold focus:outline-none focus:border-rose-500"
-                required
+                onChange={(e) => setMaxHeartRate(e.target.value ? Number(e.target.value) : '')}
+                placeholder="미측정 (워치 없을 시 빈칸)"
+                className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-xs text-rose-400 font-bold focus:outline-none focus:border-rose-500 placeholder:text-slate-500 placeholder:font-normal"
               />
             </div>
           </div>
@@ -265,9 +256,9 @@ export const WorkoutModal: React.FC<WorkoutModalProps> = ({
                 min="40"
                 max="220"
                 value={avgHeartRate}
-                onChange={(e) => setAvgHeartRate(Number(e.target.value))}
-                placeholder="예: 145"
-                className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+                onChange={(e) => setAvgHeartRate(e.target.value ? Number(e.target.value) : '')}
+                placeholder="예: 145 (선택)"
+                className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 placeholder:text-slate-500"
               />
             </div>
 

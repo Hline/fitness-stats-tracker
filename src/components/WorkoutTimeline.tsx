@@ -133,7 +133,7 @@ export const WorkoutTimeline: React.FC<WorkoutTimelineProps> = ({
                       칼로리
                     </span>
                     <span className="text-xs font-bold text-orange-400 mt-0.5 block">
-                      {workout.caloriesBurned ? `${workout.caloriesBurned} kcal` : 'N/A'}
+                      {workout.caloriesBurned ? `${workout.caloriesBurned} kcal` : '0 kcal'}
                     </span>
                   </div>
 
@@ -144,7 +144,7 @@ export const WorkoutTimeline: React.FC<WorkoutTimelineProps> = ({
                       최고 심박수
                     </span>
                     <span className="text-xs font-bold text-rose-400 mt-0.5 block">
-                      {workout.maxHeartRate ? `${workout.maxHeartRate} BPM` : 'N/A'}
+                      {workout.maxHeartRate && workout.maxHeartRate > 0 ? `${workout.maxHeartRate} BPM` : '0 BPM (미측정)'}
                     </span>
                   </div>
 
@@ -167,7 +167,7 @@ export const WorkoutTimeline: React.FC<WorkoutTimelineProps> = ({
                           평균 심박
                         </span>
                         <span className="text-xs font-bold text-slate-300 mt-0.5 block">
-                          {workout.avgHeartRate ? `${workout.avgHeartRate} BPM` : 'N/A'}
+                          {workout.avgHeartRate && workout.avgHeartRate > 0 ? `${workout.avgHeartRate} BPM` : '0 BPM (미측정)'}
                         </span>
                       </>
                     )}

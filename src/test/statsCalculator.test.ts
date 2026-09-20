@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDailyStats, calculateMonthlyStats, getHeartRateZone } from '../services/statsCalculator';
+import { calculateDailyStats, calculateMonthlyStats, getHeartRateZone, calculateYearlyStats } from '../services/statsCalculator';
 import { parseAppleHealthXml, parseAppleShortcutsJson } from '../services/appleHealthParser';
 import { parseGoogleTakeoutJson } from '../services/googleFitService';
 import { DEFAULT_WIDGET_CONFIGS, DEFAULT_PROFILES } from '../services/widgetDefaults';
@@ -167,8 +167,8 @@ describe('5. parseAppleShortcutsJson (아이폰 단축어 JSON 파서)', () => {
 });
 
 describe('6. 대시보드 위젯 커스터마이징 & 정렬 로직 검증', () => {
-  it('기본 위젯 7종이 올바른 순서(order)로 초기화되어 있어야 한다', () => {
-    expect(DEFAULT_WIDGET_CONFIGS.length).toBe(7);
+  it('기본 위젯 8종이 올바른 순서(order)로 초기화되어 있어야 한다', () => {
+    expect(DEFAULT_WIDGET_CONFIGS.length).toBe(8);
     const sorted = [...DEFAULT_WIDGET_CONFIGS].sort((a, b) => a.order - b.order);
     expect(sorted[0].id).toBe('daily-overview');
     expect(sorted[1].id).toBe('activity-rings');
@@ -180,7 +180,7 @@ describe('6. 대시보드 위젯 커스터마이징 & 정렬 로직 검증', () 
       c.id === 'hydration' ? { ...c, enabled: false } : c
     );
     const active = customConfigs.filter(c => c.enabled);
-    expect(active.length).toBe(6);
+    expect(active.length).toBe(7);
     expect(active.some(c => c.id === 'hydration')).toBe(false);
   });
 
@@ -373,6 +373,68 @@ describe('11. 네이티브 HealthKit 브릿지 및 플랫폼 감지 검증', () 
     expect(result.message).toContain('네이티브 앱 환경에서만');
   });
 });
+
+describe('12. 연간 통계(YearlyStats) 계산 로직 검증', () => {
+  it('1년치 데이터를 바탕으로 총 운동시간, 총 칼로리, 월별 통계를 정확히 집계한다', () => {
+    const mockDailyStats: Record<string, DailyStats> = {
+      '2026-01-15': {
+        date: '2026-01-15',
+        totalSteps: 8000,
+        stepGoal: 10000,
+        activeCalories: 300,
+        calorieGoal: 500,
+        totalCalories: 300,
+        workoutCount: 1,
+        peakHeartRate: 150,
+        heartRateSamples: [],
+        workouts: [{
+          id: 'w1',
+          type: 'running',
+          name: '겨울 러닝',
+          startTime: '2026-01-15T07:00:00',
+          endTime: '2026-01-15T07:45:00',
+          durationMinutes: 45,
+          caloriesBurned: 300
+        }]
+      },
+      '2026-05-20': {
+        date: '2026-05-20',
+        totalSteps: 10000,
+        stepGoal: 10000,
+        activeCalories: 500,
+        calorieGoal: 500,
+        totalCalories: 500,
+        workoutCount: 1,
+        peakHeartRate: 165,
+        heartRateSamples: [],
+        workouts: [{
+          id: 'w2',
+          type: 'cycling',
+          name: '봄철 라이딩',
+          startTime: '2026-05-20T09:00:00',
+          endTime: '2026-05-20T10:00:00',
+          durationMinutes: 60,
+          caloriesBurned: 500
+        }]
+      }
+    };
+
+    const yearly = calculateYearlyStats(2026, mockDailyStats);
+    expect(yearly.year).toBe(2026);
+    expect(yearly.totalWorkouts).toBe(2);
+    expect(yearly.totalCalories).toBe(800);
+    expect(yearly.totalSteps).toBe(18000);
+    expect(yearly.peakHeartRate).toBe(165);
+    expect(yearly.monthlySummaries.length).toBe(12);
+    expect(yearly.monthlySummaries[0].workouts).toBe(1); // 1월
+    expect(yearly.monthlySummaries[4].workouts).toBe(1); // 5월
+    expect(yearly.workoutTypeBreakdown['running']?.count).toBe(1);
+    expect(yearly.workoutTypeBreakdown['cycling']?.count).toBe(1);
+    expect(yearly.workoutTypeBreakdown['running']?.minutes).toBe(45);
+    expect(yearly.workoutTypeBreakdown['cycling']?.minutes).toBe(60);
+  });
+});
+
 
 
 

@@ -158,7 +158,7 @@ export const DailyOverview: React.FC<DailyOverviewProps> = ({ stats, onOpenWorko
               <span className="flex items-center gap-1.5">
                 <Heart className="w-3.5 h-3.5 text-rose-400" />
                 <span className="text-slate-400">최고 심박</span>
-                <strong className="text-slate-100 font-bold">{stats.peakHeartRate > 0 ? `${stats.peakHeartRate} BPM` : 'N/A'}</strong>
+                <strong className="text-slate-100 font-bold">{stats.peakHeartRate > 0 ? `${stats.peakHeartRate} BPM` : '0 BPM (미측정)'}</strong>
               </span>
             </div>
 
@@ -251,10 +251,10 @@ export const DailyOverview: React.FC<DailyOverviewProps> = ({ stats, onOpenWorko
 
           <div className="flex items-baseline gap-2 mb-2">
             <span className="text-4xl font-black text-slate-100 tracking-tight text-orange-400">
-              {stats.activeCalories > 0 ? stats.activeCalories.toLocaleString() : (stats.workoutCount === 0 && stats.totalSteps === 0 ? 'N/A' : '0')}
+              {stats.activeCalories.toLocaleString()}
             </span>
             <span className="text-sm font-semibold text-slate-400">
-              {stats.totalCalories > 0 ? `kcal (총 ${stats.totalCalories.toLocaleString()})` : 'kcal (N/A)'}
+              kcal (총 {(stats.totalCalories || 0).toLocaleString()})
             </span>
           </div>
 
@@ -279,17 +279,17 @@ export const DailyOverview: React.FC<DailyOverviewProps> = ({ stats, onOpenWorko
               운동 중 최고 심박수
             </span>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${hrZone.color}`}>
-              {hrZone.zone > 0 ? `Zone ${hrZone.zone}` : 'N/A'}
+              {hrZone.zone > 0 ? `Zone ${hrZone.zone}` : 'Zone 0 (미측정)'}
             </span>
           </div>
 
           <div className="flex items-baseline gap-2 mb-2">
             <span className="text-4xl font-black text-rose-400 tracking-tight">
-              {stats.peakHeartRate > 0 ? stats.peakHeartRate : 'N/A'}
+              {stats.peakHeartRate > 0 ? stats.peakHeartRate : 0}
             </span>
-            {stats.peakHeartRate > 0 && (
-              <span className="text-sm font-semibold text-slate-400">BPM</span>
-            )}
+            <span className="text-sm font-semibold text-slate-400">
+              BPM {stats.peakHeartRate <= 0 && <span className="text-xs text-slate-500 font-normal">(워치 미착용)</span>}
+            </span>
           </div>
 
           {/* 심박수 존 안내 */}
